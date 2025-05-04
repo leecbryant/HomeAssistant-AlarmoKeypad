@@ -6,7 +6,7 @@ const config = {
         apiKey: process.env.LONG_LIVED_ACCESS_TOKEN || 'your_default_token'
     },
     server: {
-        port: process.env.PORT || 3000
+        port: 3000
     },
     mqtt: {
         broker: process.env.MQTT_BROKER || 'mqtt://homeassistant.local',
