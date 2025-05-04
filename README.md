@@ -105,10 +105,13 @@ HomeAssistant/AlarmControl/
             image: leecbryant/ha-alarmo-keypad:latest
             network_mode: "host"
             restart: unless-stopped
-            env_file:
-               - .env
-            ports:
-               - "3000:3000"
+            environment:
+               - API_URL=https://homeassistant.local/api
+               - LONG_LIVED_ACCESS_TOKEN=yourtoken
+               - MQTT_BROKER=mqtt://homeassistant
+               - MQTT_USER=youruser
+               - MQTT_PASSWORD=yourpassword
+               - SENSOR_LIST=[ "binary_sensor.front_door", "binary_sensor.kitchen_door" ]
       ```
    - Start the service
       ```bash
