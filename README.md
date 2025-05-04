@@ -42,7 +42,7 @@ HomeAssistant/AlarmControl/
 - Home Assistant instance with REST API and WebSocket API enabled
 - (Optional) Docker and Docker Compose for containerized deployment
 
-### Installation
+### Local Setup/Execution
 
 1. Clone the repository:
    ```
@@ -62,7 +62,7 @@ HomeAssistant/AlarmControl/
       MQTT_BROKER=mqtt://homeassistant
       MQTT_USER=usname
       MQTT_PASSWORD=password
-      SENSOR_LIST=[""]
+      SENSOR_LIST=["binarysensor.frontdoor", binarysensor.backdoor"]
    ```
 
 3. Local Execution
@@ -72,13 +72,48 @@ HomeAssistant/AlarmControl/
 
 4. Build the Docker image:
    ```
-   docker build -t ha-alarmo-keypad .
+      docker build -t ha-alarmo-keypad .
    ```
 
 5. Run the Docker container:
    ```
-   docker run -p 3000:3000 --env-file .env ha-alarmo-keypad
+      docker run --network host -p 3000:3000 --env-file .env ha-alarmo-keypad
    ```
+
+### Docker Installation
+
+1. Create a `.env` file with your configuration:
+   ```
+      API_URL=http://homeassistant.local/api
+      LONG_LIVED_ACCESS_TOKEN=token
+      MQTT_BROKER=mqtt://homeassistant
+      MQTT_USER=usname
+      MQTT_PASSWORD=password
+      SENSOR_LIST=["binarysensor.frontdoor", binarysensor.backdoor"]
+   ```
+2. Option 1: Run using Docker directly:
+   ```bash
+      docker run --network host --env-file .env leecbryant/ha-alarmo-keypad:latest
+   ```
+
+3. Option 2: Using Docker Compose 
+
+   - Create the Docker Compose File
+      ```
+      services:
+         alarmo-keypad:
+            image: leecbryant/ha-alarmo-keypad:latest
+            network_mode: "host"
+            restart: unless-stopped
+            env_file:
+               - .env
+            ports:
+               - "3000:3000"
+      ```
+   - Start the service
+      ```bash
+         docker-compose up -d
+      ```
 
 ### Usage
 
