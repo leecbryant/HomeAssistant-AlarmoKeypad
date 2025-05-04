@@ -77,7 +77,7 @@ HomeAssistant/AlarmControl/
 
 5. Run the Docker container:
    ```
-   docker run -p 3000:3000 --add-host=homeassistant:192.168.x.x  ha-alarmo-keypad:latest
+   do=ker run -p 3000:3000 --add-host=homeassistant:192.168.x.x  ha-alarmo-keypad:latest
    ```
 
 ### Docker Installation
@@ -95,6 +95,11 @@ HomeAssistant/AlarmControl/
    ```bash
       docker run -p 3000:3000 --add-host=homeassistant:192.168.x.x  --env-file .env leecbryant/ha-alarmo-keypad:latest
    ```
+
+### Pushing Docker Image upstream
+```
+   docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t leecbryant/ha-alarmo-keypad:latest --push .
+```
 
 ### Usage
 

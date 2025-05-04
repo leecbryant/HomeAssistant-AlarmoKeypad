@@ -22,12 +22,19 @@ let pinLength = 0;
 let pendingArmMode = null; // Store the arm mode that's pending code entry
 
 // Audio elements for various system sounds
-const keypadSound = new Audio('/sounds/keypress.wav');
-const actionSound = new Audio('/sounds/action.wav');
-const errorSound = new Audio('/sounds/error.wav');
-const armedSound = new Audio('/sounds/armed.wav');
-const disarmedSound = new Audio('/sounds/disarmed.wav');
-const triggeredSound = new Audio('/sounds/action.wav');
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const soundBuffers = {};
+const sounds = ['keypress', 'action', 'error', 'armed', 'disarmed'];
+sounds.forEach(sound => {
+    fetch(`/sounds/${sound}.mp3`)
+        .then(response => response.arrayBuffer())
+        .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+        .then(audioBuffer => {
+            soundBuffers[sound] = audioBuffer;
+            console.log(`Sound ${sound} loaded`);
+        })
+        .catch(error => console.error(`Error loading sound ${sound}:`, error));
+});
 
 // Track initialization to prevent sounds on initial state load
 let initialStateLoaded = false;
@@ -186,31 +193,29 @@ function playHapticFeedback(style = 'medium') {
  */
 function playSound(type = 'keypad') {
     try {
+        // Resume audio context if it's suspended (needed for iOS)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        // Map the type to the buffer name
+        let soundName;
         switch(type) {
-            case 'keypad':
-                keypadSound.currentTime = 0;
-                keypadSound.play();
-                break;
-            case 'action':
-                actionSound.currentTime = 0;
-                actionSound.play();
-                break;
-            case 'error':
-                errorSound.currentTime = 0;
-                errorSound.play();
-                break;
-            case 'armed':
-                armedSound.currentTime = 0;
-                armedSound.play();
-                break;
-            case 'disarmed':
-                disarmedSound.currentTime = 0;
-                disarmedSound.play();
-                break;
-            case 'triggered':
-                triggeredSound.currentTime = 0;
-                triggeredSound.play();
-                break;
+            case 'keypad': soundName = 'keypress'; break;
+            case 'action': soundName = 'action'; break;
+            case 'error': soundName = 'error'; break;
+            case 'armed': soundName = 'armed'; break;
+            case 'disarmed': soundName = 'disarmed'; break;
+            case 'triggered': soundName = 'action'; break;
+            default: soundName = 'keypress';
+        }
+        
+        // If buffer is loaded, play it
+        if (soundBuffers[soundName]) {
+            const source = audioContext.createBufferSource();
+            source.buffer = soundBuffers[soundName];
+            source.connect(audioContext.destination);
+            source.start(0);
         }
     } catch (e) {
         console.error('Error playing sound:', e);
