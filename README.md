@@ -96,28 +96,6 @@ HomeAssistant/AlarmControl/
       docker run --network host --env-file .env leecbryant/ha-alarmo-keypad:latest
    ```
 
-3. Option 2: Using Docker Compose 
-
-   - Create the Docker Compose File
-      ```
-      services:
-         alarmo-keypad:
-            image: leecbryant/ha-alarmo-keypad:latest
-            network_mode: "host"
-            restart: unless-stopped
-            environment:
-               - API_URL=https://homeassistant.local/api
-               - LONG_LIVED_ACCESS_TOKEN=yourtoken
-               - MQTT_BROKER=mqtt://homeassistant
-               - MQTT_USER=youruser
-               - MQTT_PASSWORD=yourpassword
-               - SENSOR_LIST=[ "binary_sensor.front_door", "binary_sensor.kitchen_door" ]
-      ```
-   - Start the service
-      ```bash
-         docker-compose up -d
-      ```
-
 ### Usage
 
 - Access the web interface at http://your-server-ip:3000
