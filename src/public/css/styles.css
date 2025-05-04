@@ -1,0 +1,561 @@
+:root {
+    --bg-color: #151b2e;
+    --panel-color: #1c2438;
+    --primary-dark: #13192a;
+    --primary-light: #2c3652;
+    --accent-blue: #3498db;
+    --accent-green: #2ecc71;
+    --accent-red: #e74c3c;
+    --accent-yellow: #f39c12;
+    --text-light: #ecf0f1;
+    --text-dim: #7f8c8d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-light);
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    touch-action: manipulation;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 768px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+@media (min-height: 800px) {
+    .container {
+        padding-top: 20px;
+    }
+}
+
+.alarm-panel {
+    background-color: var(--panel-color);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.system-status {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--primary-dark);
+    border-radius: 10px;
+}
+
+.status-icon {
+    background-color: var(--accent-green);
+    color: var(--primary-dark);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 15px;
+}
+
+.status-info {
+    flex-grow: 1;
+}
+
+.status-text {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.status-detail {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.pin-display {
+    padding: 10px;
+    text-align: center;
+}
+
+.pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.pin-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: var(--text-light);
+}
+
+.pin-dot.empty {
+    background-color: var(--primary-light);
+}
+
+.pinpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px;
+}
+
+.pin-btn {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    border: none;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pin-btn:active {
+    background-color: var(--accent-blue);
+    transform: scale(0.95);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: none;
+    border-radius: 12px;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.action-btn i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.arm-home {
+    background-color: var(--accent-green);
+}
+
+.arm-away {
+    background-color: var(--accent-blue);
+}
+
+.action-btn.active,
+.action-btn:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+.large-button {
+    min-height: 100px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+@media (orientation: landscape) {
+    .action-buttons {
+        flex-direction: row;
+    }
+    
+    .action-btn {
+        min-width: 160px;
+    }
+}
+
+@media (orientation: portrait) {
+    .action-btn {
+        min-height: 120px;
+    }
+}
+
+.panic-btn {
+    background-color: var(--accent-red);
+    color: var(--text-light);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.panic-btn:active {
+    background-color: #c0392b;
+    transform: scale(0.98);
+}
+
+/* Make the clear button more modern */
+.clear-btn {
+    background-color: rgba(231, 76, 60, 0.2) !important;
+    color: #e74c3c !important;
+    font-size: 1.4rem !important;
+}
+
+.clear-btn:active {
+    background-color: rgba(231, 76, 60, 0.4) !important;
+}
+
+/* Style for the enter button */
+.enter-btn {
+    background-color: rgba(46, 204, 113, 0.2) !important;
+    color: #2ecc71 !important;
+    font-size: 1.4rem !important;
+}
+
+.enter-btn:active {
+    background-color: rgba(46, 204, 113, 0.4) !important;
+}
+
+/* Sensors Panel */
+.sensors-panel {
+    background-color: var(--panel-color);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 0 10px 10px 10px;
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 550px);
+}
+
+.sensors-header {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--primary-light);
+}
+
+#sensors-container {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 5px;
+}
+
+.sensors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sensor-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: var(--primary-dark);
+    transition: background-color 0.3s;
+}
+
+.sensor-item.triggered {
+    background-color: rgba(231, 76, 60, 0.2);
+    border-left: 3px solid var(--accent-red);
+}
+
+.sensor-icon {
+    margin-right: 15px;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sensor-item.triggered .sensor-icon {
+    background-color: var(--accent-red);
+    color: var(--text-light);
+}
+
+.sensor-info {
+    flex-grow: 1;
+}
+
+.sensor-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.sensor-state {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.sensor-state.triggered {
+    color: var(--accent-red);
+}
+
+.spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top: 3px solid var(--accent-blue);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* System Status Colors */
+.status-disarmed .status-icon {
+    background-color: var(--accent-green);
+}
+
+.status-armed_away .status-icon,
+.status-armed_home .status-icon,
+.status-armed_night .status-icon {
+    background-color: var(--accent-red);
+}
+
+.status-pending .status-icon {
+    background-color: var(--accent-yellow);
+    animation: blink 1s infinite;
+}
+
+.status-triggered .status-icon {
+    background-color: var(--accent-red);
+    animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Scrollbar styling */
+#sensors-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+#sensors-container::-webkit-scrollbar-track {
+    background: var(--primary-dark);
+    border-radius: 5px;
+}
+
+#sensors-container::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 5px;
+}
+
+#sensors-container::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+/* Arming state styling */
+.status-arming .status-icon {
+    background-color: #ffc107; /* Yellow background for the icon */
+    color: var(--primary-dark); /* Dark color for the shield */
+    position: relative;
+    animation: slashShield 1.5s infinite;
+}
+
+@keyframes slashShield {
+    0% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+    100% { transform: rotate(-5deg); }
+}
+
+.status-arming .status-text {
+    color: #ffc107; /* Match the icon color */
+}
+
+.status-arming .status-detail {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Add missing styles moved from inline JavaScript */
+
+/* Notification styles */
+#notification-container {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.notification {
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.notification.error {
+    background-color: #ff5252;
+}
+
+.notification.warning {
+    background-color: #ffb142;
+}
+
+.notification.success {
+    background-color: #69c779;
+}
+
+.notification.info {
+    background-color: #3498db;
+}
+
+/* Sensor badges */
+.status-sensors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.sensor-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.sensor-badge i {
+    margin-right: 6px;
+}
+
+.sensor-badge.open {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.sensor-badge.open i {
+    animation: pulse 1.5s infinite;
+}
+
+.arm-button-warning {
+    border: 2px solid var(--accent-yellow) !important;
+    position: relative;
+}
+
+.arm-button-warning::after {
+    content: "!";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--accent-yellow);
+    color: var(--primary-dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Override button styling */
+.override-pending {
+    animation: pulse-override 1.5s infinite !important;
+}
+
+@keyframes pulse-override {
+    0% { background-color: var(--primary-dark); }
+    50% { background-color: var(--accent-yellow); }
+    100% { background-color: var(--primary-dark); }
+}
+
+/* Scrollable sensor container */
+.status-sensors.many-sensors {
+    max-height: 70px;
+    overflow-y: auto;
+    padding-right: 5px;
+    margin-bottom: 5px;
+    scrollbar-width: thin;
+}
+
+.status-sensors.many-sensors::-webkit-scrollbar {
+    width: 4px;
+}
+
+.status-sensors.many-sensors::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.status-sensors.many-sensors::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* Spinner for loading */
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spinner 1s linear infinite;
+    margin: 10px auto;
+}
+
+@keyframes spinner {
+    to {transform: rotate(360deg);}
+}

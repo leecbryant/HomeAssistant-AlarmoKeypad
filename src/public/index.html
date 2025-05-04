@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alarm Control Panel</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Socket.io client library first -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Then load our application JS -->
+    <script src="js/main.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Alarm Panel -->
+        <div class="alarm-panel">
+            <!-- System Status -->
+            <div id="system-status" class="system-status status-disarmed">
+                <div class="status-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="status-info">
+                    <div class="status-text" id="alarm-state">Disarmed</div>
+                    <div class="status-detail" id="status-detail">System Ready</div>
+                </div>
+            </div>
+
+            <!-- PIN Display -->
+            <div class="pin-display">
+                <div class="pin-dots" id="pin-dots">
+                    <div class="pin-dot empty"></div>
+                    <div class="pin-dot empty"></div>
+                    <div class="pin-dot empty"></div>
+                    <div class="pin-dot empty"></div>
+                </div>
+            </div>
+
+            <!-- Keypad -->
+            <div class="pinpad">
+                <button class="pin-btn key" data-key="1">1</button>
+                <button class="pin-btn key" data-key="2">2</button>
+                <button class="pin-btn key" data-key="3">3</button>
+                <button class="pin-btn key" data-key="4">4</button>
+                <button class="pin-btn key" data-key="5">5</button>
+                <button class="pin-btn key" data-key="6">6</button>
+                <button class="pin-btn key" data-key="7">7</button>
+                <button class="pin-btn key" data-key="8">8</button>
+                <button class="pin-btn key" data-key="9">9</button>
+                <button class="pin-btn clear-btn key" data-key="clear">
+                    <i class="fas fa-backspace"></i>
+                </button>
+                <button class="pin-btn key" data-key="0">0</button>
+                <button class="pin-btn enter-btn key" data-key="enter">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+
+            <!-- Action Buttons - Removed disarm button -->
+            <div class="action-buttons">
+                <button id="arm-home" class="action-btn arm-home">
+                    <i class="fas fa-home"></i>
+                    <span>Arm Home</span>
+                </button>
+                <button id="arm-away" class="action-btn arm-away">
+                    <i class="fas fa-walking"></i>
+                    <span>Arm Away</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
