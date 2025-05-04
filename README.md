@@ -1,5 +1,5 @@
 # Alarmo + HomeAssistant MQTT Keypad
-This project is a Node.js application that serves as a modern keypad interface for controlling Alarmo via MQTT while querying HomeAssistant sensors. The application is designed to run in a Docker container and provides a user-friendly HTML webpage that can be accessed on a wall mounted iPad or any other device with a web browser.
+Node.js app that serves as a modern keypad for controlling Alarmo via MQTT while querying HomeAssistant sensors. The application is designed to run in a Docker container and provides a user-friendly HTML webpage that can be accessed on a wall mounted iPad or any other device with a web browser.
 
 ## Sample Keypad
 ![Example of alarmo keypad](images/Sample.png)
