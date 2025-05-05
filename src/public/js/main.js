@@ -981,6 +981,34 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Sound preloading not supported:', e);
     }
     
+    // iOS specific: Resume audio context on visibility change (app comes to foreground)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            if (audioContext && audioContext.state === 'suspended') {
+                console.log('Resuming audio context after visibility change');
+                audioContext.resume().then(() => {
+                    console.log('Audio context successfully resumed');
+                });
+            }
+        }
+    });
+    
+    // iOS specific: Resume audio context on any user interaction
+    document.addEventListener('touchstart', function() {
+        if (audioContext && audioContext.state === 'suspended') {
+            console.log('Resuming audio context after user interaction');
+            audioContext.resume();
+        }
+    }, true);
+    
+    // Periodically check and try to resume audio context
+    setInterval(() => {
+        if (audioContext && audioContext.state === 'suspended') {
+            console.log('Attempting to resume suspended audio context');
+            audioContext.resume();
+        }
+    }, 30000); // Check every 30 seconds
+
     // Add custom styling to arm buttons but preserve their content
     const armHomeBtn = document.getElementById('arm-home');
     const armAwayBtn = document.getElementById('arm-away');
