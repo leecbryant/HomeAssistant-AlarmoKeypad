@@ -9,24 +9,102 @@
     --accent-yellow: #f39c12;
     --text-light: #ecf0f1;
     --text-dim: #7f8c8d;
+    
+    /* Force color scheme to prevent system dark mode interference */
+    color-scheme: dark;
+}
+
+/* Prevent system dark mode from overriding our colors */
+html {
+    color-scheme: dark;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* Force color inheritance to prevent system overrides */
+    color-scheme: inherit;
 }
 
 body {
     font-family: 'Roboto', Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-light);
+    background-color: var(--bg-color) !important;
+    color: var(--text-light) !important;
     line-height: 1.6;
     padding: 0;
     margin: 0;
     height: 100vh;
     touch-action: manipulation;
     overflow: hidden;
+    transition: filter 1s ease;
+    /* Prevent system dark mode interference */
+    -webkit-color-scheme: dark;
+    color-scheme: dark;
+}
+
+/* Screen dimming for iOS PWA - More aggressive dimming for dark rooms */
+body.screen-dimmed {
+    filter: brightness(0.15) contrast(0.8);
+}
+
+/* Additional overlay to ensure complete screen dimming */
+body.screen-dimmed::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 998;
+    pointer-events: none;
+}
+
+body.screen-dimmed::after {
+    content: "Tap to wake";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 300;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 1);
+    z-index: 999;
+    pointer-events: none;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+}
+
+/* Android/FullyKiosk specific color consistency fixes */
+/* Force our color scheme and prevent system interference */
+input, button, select, textarea {
+    background-color: var(--primary-dark) !important;
+    color: var(--text-light) !important;
+    border-color: var(--primary-light) !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Prevent Android WebView from applying system colors */
+::-webkit-scrollbar {
+    background-color: var(--bg-color) !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-light) !important;
+}
+
+/* Force color scheme on all elements */
+*, *::before, *::after {
+    -webkit-color-scheme: dark !important;
+    color-scheme: dark !important;
 }
 
 .container {
@@ -121,25 +199,70 @@ body {
 }
 
 .pin-btn {
-    background-color: var(--primary-dark);
-    color: var(--text-light);
-    border: none;
+    background-color: var(--primary-dark) !important;
+    color: var(--text-light) !important;
+    border: none !important;
     border-radius: 50%;
-    width: 70px;
-    height: 70px;
+    width: 80px;  /* Increased from 70px */
+    height: 80px; /* Increased from 70px */
     font-size: 1.8rem;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: transform 0.1s ease-out, background-color 0.1s ease-out, box-shadow 0.1s ease-out; /* Smooth release animation */
     margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Increase tap zone beyond visual boundary */
+    position: relative;
+    /* Optimize for touch performance */
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation;
+    /* Prevent double-tap zoom */
+    user-select: none;
+    -webkit-user-select: none;
+    /* Prevent animation restart on hold */
+    animation-fill-mode: forwards;
 }
 
-.pin-btn:active {
+/* Create larger invisible tap zone */
+.pin-btn::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: transparent;
+    pointer-events: auto;
+}
+
+/* Prevent unwanted focus outlines on pin buttons */
+.pin-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.pin-btn:active,
+.pin-btn.active {
     background-color: var(--accent-blue);
-    transform: scale(0.95);
+    transform: scale(0.9); /* Reduced scale for quicker animation */
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+    animation: buttonPress 0.15s ease-out forwards;
+}
+
+/* Touch animation for pin buttons - Hold-friendly */
+@keyframes buttonPress {
+    0% {
+        transform: scale(1);
+        background-color: var(--primary-dark);
+        box-shadow: none;
+    }
+    100% {
+        transform: scale(0.9);
+        background-color: var(--accent-blue);
+        box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+    }
 }
 
 .action-buttons {
@@ -155,14 +278,36 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    border: none;
+    padding: 25px; /* Increased from 20px */
+    border: none !important;
     border-radius: 12px;
-    color: var(--text-light);
+    color: var(--text-light) !important;
     font-size: 1.2rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out, box-shadow 0.15s ease-out; /* Smooth release animation */
     cursor: pointer;
+    /* Optimize for touch performance */
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Create larger tap zone */
+    position: relative;
+    min-height: 110px; /* Increased from default */
+    /* Prevent animation restart on hold */
+    animation-fill-mode: forwards;
+}
+
+/* Create larger invisible tap zone for action buttons */
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: transparent;
+    pointer-events: auto;
 }
 
 .action-btn i {
@@ -171,17 +316,34 @@ body {
 }
 
 .arm-home {
-    background-color: var(--accent-green);
+    background-color: var(--accent-green) !important;
 }
 
 .arm-away {
-    background-color: var(--accent-blue);
+    background-color: var(--accent-blue) !important;
 }
 
 .action-btn.active,
 .action-btn:active {
-    transform: scale(0.95);
-    opacity: 0.8;
+    transform: scale(0.92); /* Reduced scale for quicker feedback */
+    opacity: 0.9; /* Slightly less opacity change */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 25px rgba(255, 255, 255, 0.1);
+    animation: actionButtonPress 0.2s ease-out forwards;
+}
+
+/* Touch animation for action buttons - Hold-friendly */
+@keyframes actionButtonPress {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: scale(0.92);
+        opacity: 0.9;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
+                    0 0 25px rgba(255, 255, 255, 0.1);
+    }
 }
 
 .large-button {

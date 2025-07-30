@@ -77,7 +77,7 @@ HomeAssistant/AlarmControl/
 
 5. Run the Docker container:
    ```
-   do=ker run -p 3000:3000 --add-host=homeassistant:192.168.x.x  ha-alarmo-keypad:latest
+   docker run -p 3000:3000 --add-host=homeassistant:192.168.x.x  ha-alarmo-keypad:latest
    ```
 
 ### Docker Installation

@@ -21,23 +21,38 @@ let currentCode = '';
 let pinLength = 0;
 let pendingArmMode = null; // Store the arm mode that's pending code entry
 
-// Audio elements for various system sounds
+// Track initialization to prevent sounds on initial state load and reconnections
+let initialStateLoaded = false;
+let currentAlarmState = null; // Track current state to prevent redundant updates
+let lastButtonState = null; // Track button visibility state to prevent unnecessary changes
+
+// Audio elements for various system sounds - Optimized for Android/FullyKiosk
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const soundBuffers = {};
+const soundSources = {}; // Cache active sources for quick reuse
 const sounds = ['keypress', 'action', 'error', 'armed', 'disarmed'];
+
+// Preload and optimize audio buffers
 sounds.forEach(sound => {
     fetch(`/sounds/${sound}.mp3`)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
         .then(audioBuffer => {
             soundBuffers[sound] = audioBuffer;
-            console.log(`Sound ${sound} loaded`);
+            console.log(`Sound ${sound} loaded and optimized`);
         })
         .catch(error => console.error(`Error loading sound ${sound}:`, error));
 });
 
-// Track initialization to prevent sounds on initial state load
-let initialStateLoaded = false;
+// Pre-warm audio context for Android
+if (audioContext.state === 'suspended') {
+    // Create a silent buffer to initialize audio system
+    const buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+}
 
 // Store the refresh timer ID to avoid multiple refreshes
 let sensorRefreshTimer = null;
@@ -70,6 +85,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
     console.log('Disconnected from server');
     updateAlarmState('Unknown');
+    // Don't reset currentAlarmState here - keep it so we can detect actual changes on reconnect
 });
 
 /**
@@ -78,17 +94,26 @@ socket.on('disconnect', () => {
 socket.on('alarmStateChanged', (data) => {
     console.log('Alarm state changed:', data);
     
-    // Only play sound if this isn't the initial state load
-    if (initialStateLoaded) {
+    // Check if this is actually a state change or just a reconnection update
+    const isActualStateChange = currentAlarmState !== data.state;
+    
+    // Only play sound if this is an actual state change and not initial load
+    if (initialStateLoaded && isActualStateChange) {
         // Play appropriate sound based on the state change
         playAlarmStateSound(data.state);
-    } else {
+        console.log(`State changed from ${currentAlarmState} to ${data.state} - playing sound`);
+    } else if (!initialStateLoaded) {
         // First state update after page load, mark initialization complete
         initialStateLoaded = true;
         console.log('Initial state loaded without playing sounds');
+    } else {
+        console.log(`State update ignored - no change from ${currentAlarmState}`);
     }
     
-    // Update the UI
+    // Update the current state tracker before UI update
+    currentAlarmState = data.state;
+    
+    // Update the UI (but buttons will only change if state actually changed)
     updateAlarmState(data.state);
 });
 
@@ -188,14 +213,15 @@ function playHapticFeedback(style = 'medium') {
 
 /**
  * Plays sound feedback for button presses and system events
+ * Optimized for low latency on Android/FullyKiosk
  * 
  * @param {string} type - Type of sound ('keypad', 'action', 'error', 'armed', 'disarmed', 'triggered')
  */
 function playSound(type = 'keypad') {
     try {
-        // Resume audio context if it's suspended (needed for iOS)
+        // Quick resume for Android
         if (audioContext.state === 'suspended') {
-            audioContext.resume();
+            audioContext.resume().catch(() => {});
         }
         
         // Map the type to the buffer name
@@ -210,12 +236,29 @@ function playSound(type = 'keypad') {
             default: soundName = 'keypress';
         }
         
-        // If buffer is loaded, play it
+        // If buffer is loaded, play it immediately
         if (soundBuffers[soundName]) {
+            // Stop any existing sound of this type for immediate response
+            if (soundSources[soundName]) {
+                try {
+                    soundSources[soundName].stop();
+                } catch (e) {}
+            }
+            
             const source = audioContext.createBufferSource();
             source.buffer = soundBuffers[soundName];
             source.connect(audioContext.destination);
             source.start(0);
+            
+            // Cache for potential early stopping
+            soundSources[soundName] = source;
+            
+            // Clean up reference when done
+            source.onended = () => {
+                if (soundSources[soundName] === source) {
+                    soundSources[soundName] = null;
+                }
+            };
         }
     } catch (e) {
         console.error('Error playing sound:', e);
@@ -327,14 +370,25 @@ function updateArmButtonsState(state) {
     const armAwayBtn = document.getElementById('arm-away');
     
     if (armHomeBtn && armAwayBtn) {
-        // Show arm buttons only when disarmed
-        if (state === 'disarmed') {
-            armHomeBtn.style.display = 'flex';
-            armAwayBtn.style.display = 'flex';
+        // Determine what the button state should be
+        const shouldShowButtons = (state === 'disarmed');
+        
+        // Only update if the button state actually needs to change
+        if (lastButtonState !== shouldShowButtons) {
+            console.log(`Button visibility changing: ${lastButtonState} -> ${shouldShowButtons}`);
+            
+            if (shouldShowButtons) {
+                armHomeBtn.style.display = 'flex';
+                armAwayBtn.style.display = 'flex';
+            } else {
+                armHomeBtn.style.display = 'none';
+                armAwayBtn.style.display = 'none';
+            }
+            
+            // Update the tracked state
+            lastButtonState = shouldShowButtons;
         } else {
-            // When armed or in other states, hide the arm buttons
-            armHomeBtn.style.display = 'none';
-            armAwayBtn.style.display = 'none';
+            console.log(`Button visibility unchanged: ${shouldShowButtons}`);
         }
     }
     
@@ -748,10 +802,7 @@ function requestArmWithMode(mode, code = null) {
         if (statusDetailElement) {
             statusDetailElement.textContent = `Enter Code to Arm ${mode === 'arm_home' ? 'Home' : 'Away'}`;
         }
-        
-        // Focus on the first keypad button
-        document.querySelector('.pin-btn[data-key="1"]')?.focus();
-        
+                
         return;
     }
     
@@ -1021,95 +1072,120 @@ document.addEventListener('DOMContentLoaded', () => {
         armAwayBtn.classList.add('large-button');
     }
     
-    // Event listeners for keypad
+    // Event listeners for keypad - Optimized for fast touch response
     document.querySelectorAll('.key').forEach(button => {
-        button.addEventListener('click', () => {
-            const key = button.dataset.key;
+        // Use touchstart for immediate response on Android
+        button.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevent mouse events
+            this.classList.add('active');
+            
+            // Immediate key processing for faster response
+            const key = this.dataset.key;
+            handleKeyPress(key);
+        }, { passive: false });
+        
+        // Clean up active state on touchend
+        button.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            this.classList.remove('active');
+        }, { passive: false });
+        
+        // Keep click handler as fallback for non-touch devices
+        button.addEventListener('click', function(e) {
+            // Only process if no touch events fired
+            if (e.detail === 0) return; // Skip if triggered by touch
+            const key = this.dataset.key;
             handleKeyPress(key);
         });
         
-        // Add touch feedback (visual)
-        button.addEventListener('touchstart', function() {
-            this.classList.add('active');
-        });
-        
-        button.addEventListener('touchend', function() {
-            this.classList.remove('active');
+        // Prevent context menu on long press
+        button.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
         });
     });
     
-    // Action button event listeners with sound and haptic feedback
+/**
+ * Handles arm button press logic (shared between touch and click events)
+ * @param {string} mode - 'arm_home' or 'arm_away'
+ */
+function handleArmButtonPress(mode) {
+    console.log(`${mode} button pressed`);
+    
+    // Process arm request
+    const openSensorsContainer = document.getElementById('entities-container');
+    const hasOpenSensors = openSensorsContainer && 
+                        openSensorsContainer.style.display !== 'none' && 
+                        openSensorsContainer.children.length > 0;
+                        
+    if (hasOpenSensors && !armButtonPressed[mode]) {
+        requestArmWithMode(mode, currentCode.length >= 4 ? currentCode : null);
+    } else {
+        if (currentCode && pinLength >= 4) {
+            const codeToUse = currentCode;
+            currentCode = '';
+            pinLength = 0;
+            updatePinDisplay();
+            requestArmWithMode(mode, codeToUse);
+        } else {
+            requestArmWithMode(mode);
+        }
+    }
+}
+
+    // Action button event listeners - Optimized for Android touch response
     if (armHomeBtn) {
-        // Modified to use existing code if available
-        armHomeBtn.addEventListener('click', () => {
-            console.log('Arm Home clicked');
-            // Don't clear the code on the first press when sensors are open
-            const openSensorsContainer = document.getElementById('entities-container');
-            const hasOpenSensors = openSensorsContainer && 
-                                openSensorsContainer.style.display !== 'none' && 
-                                openSensorsContainer.children.length > 0;
-                                
-            if (hasOpenSensors && !armButtonPressed.arm_home) {
-                // On first press with open sensors, don't clear code, just call requestArmWithMode
-                requestArmWithMode('arm_home', currentCode.length >= 4 ? currentCode : null);
-            } else {
-                // Otherwise handle normally - if there's a valid code already entered, use it directly
-                if (currentCode && pinLength >= 4) {
-                    const codeToUse = currentCode;
-                    currentCode = '';
-                    pinLength = 0;
-                    updatePinDisplay();
-                    requestArmWithMode('arm_home', codeToUse);
-                } else {
-                    requestArmWithMode('arm_home');
-                }
+        // Use touchstart for immediate response on touch devices
+        armHomeBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            this.classList.add('active');
+            handleArmButtonPress('arm_home');
+        }, { passive: false });
+        
+        // Clean up on touch end
+        armHomeBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            this.classList.remove('active');
+        }, { passive: false });
+        
+        // Click fallback for non-touch devices or when touch fails
+        armHomeBtn.addEventListener('click', function(e) {
+            // Only process if not triggered by touch event
+            if (e.detail !== 0) {
+                handleArmButtonPress('arm_home');
             }
         });
         
-        // Touch feedback
-        armHomeBtn.addEventListener('touchstart', function() {
-            this.classList.add('active');
-        });
-        
-        armHomeBtn.addEventListener('touchend', function() {
-            this.classList.remove('active');
+        // Prevent context menu
+        armHomeBtn.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
         });
     }
 
     if (armAwayBtn) {
-        // Modified to use existing code if available
-        armAwayBtn.addEventListener('click', () => {
-            console.log('Arm Away clicked');
-            // Don't clear the code on the first press when sensors are open
-            const openSensorsContainer = document.getElementById('entities-container');
-            const hasOpenSensors = openSensorsContainer && 
-                                openSensorsContainer.style.display !== 'none' && 
-                                openSensorsContainer.children.length > 0;
-                                
-            if (hasOpenSensors && !armButtonPressed.arm_away) {
-                // On first press with open sensors, don't clear code, just call requestArmWithMode
-                requestArmWithMode('arm_away', currentCode.length >= 4 ? currentCode : null);
-            } else {
-                // Otherwise handle normally
-                if (currentCode && pinLength >= 4) {
-                    const codeToUse = currentCode;
-                    currentCode = '';
-                    pinLength = 0;
-                    updatePinDisplay();
-                    requestArmWithMode('arm_away', codeToUse);
-                } else {
-                    requestArmWithMode('arm_away');
-                }
+        // Use touchstart for immediate response on touch devices
+        armAwayBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            this.classList.add('active');
+            handleArmButtonPress('arm_away');
+        }, { passive: false });
+        
+        // Clean up on touch end
+        armAwayBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            this.classList.remove('active');
+        }, { passive: false });
+        
+        // Click fallback for non-touch devices or when touch fails
+        armAwayBtn.addEventListener('click', function(e) {
+            // Only process if not triggered by touch event
+            if (e.detail !== 0) {
+                handleArmButtonPress('arm_away');
             }
         });
         
-        // Touch feedback
-        armAwayBtn.addEventListener('touchstart', function() {
-            this.classList.add('active');
-        });
-        
-        armAwayBtn.addEventListener('touchend', function() {
-            this.classList.remove('active');
+        // Prevent context menu
+        armAwayBtn.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
         });
     }
     

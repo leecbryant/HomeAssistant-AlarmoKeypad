@@ -1,0 +1,17 @@
+{
+  "name": "Alarm Control Panel",
+  "short_name": "Alarm Panel",
+  "description": "Home Assistant Alarmo Keypad",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "theme_color": "#151b2e",
+  "background_color": "#151b2e",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23151b2e'/%3E%3Cpath d='M90 30c-25 0-45 20-45 45v15h-5c-5.5 0-10 4.5-10 10v50c0 5.5 4.5 10 10 10h100c5.5 0 10-4.5 10-10v-50c0-5.5-4.5-10-10-10h-5V75c0-25-20-45-45-45zM65 75c0-13.8 11.2-25 25-25s25 11.2 25 25v15H65V75z' fill='%23fff'/%3E%3C/svg%3E",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}
